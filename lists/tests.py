@@ -1,7 +1,11 @@
 from django.test import TestCase
+from django.urls import resolve
+from lists.views import home_page
 
-class BadTest(TestCase):
-    def test_fakeee(self):
-        self.assertEqual(1, 2)
 
-        
+class HomePageTest(TestCase):
+    def test_root_url_resolves_to_home_page_view(self):
+        # result = resolve("admin/")
+        result = resolve("/")
+
+        self.assertEqual(result.func, home_page)
