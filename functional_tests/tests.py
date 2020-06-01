@@ -29,7 +29,6 @@ class NewVisitorTest(LiveServerTestCase):
                 time.sleep(0.1)
 
     def test_can_start_list_and_retrieve_later(self):
-
         # Edith has heard about a cool new online to-do app. She goes
         # to check out its homepage
         self.browser.get(self.live_server_url)
@@ -50,6 +49,7 @@ class NewVisitorTest(LiveServerTestCase):
         # When she hits enter, the page updates, and now the page lists
         # "1: Buy peacock feathers" as an item in a to-do list
         inputbox.send_keys(Keys.ENTER)
+
         self.wait_for_item_in_list_table("1: Buy peacock feathers")
 
         # There is still a text box inviting her to add another item. She

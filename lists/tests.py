@@ -15,24 +15,30 @@ class HomePageTest(TestCase):
         added_item = Item.objects.first()
         self.assertEqual(added_item.text, "A new list item")
 
-    def test_redirect_on_POST(self):
+    def test_redirect_after_POST(self):
         response = self.client.post("/", data={"item_text": "A new list item"})
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["location"], "/")
+        self.assertEqual(response["location"], "/lists/unique-identifier")
 
     def test_only_save_items_when_necessary(self):
         self.client.get("/")
         self.assertEqual(Item.objects.count(), 0)
 
+
+class ListViewTest(TestCase):
+    def test_uses_list_template(self):
+        response = self.client.get("/lists/unique-identifier/")
+        self.assertTemplateUsed(response, "list.html")
+
     def test_display_all_list_items(self):
         Item.objects.create(text="first text")
         Item.objects.create(text="second text")
 
-        response = self.client.get("/")
+        response = self.client.get("/lists/unique-identifier/")
 
-        self.assertIn("first text", response.content.decode())
-        self.assertIn("second text", response.content.decode())
+        self.assertContains(response, "first text")
+        self.assertContains(response, "second text")
 
 
 class ItemModelTest(TestCase):
