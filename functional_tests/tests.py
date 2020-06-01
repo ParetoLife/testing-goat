@@ -62,12 +62,41 @@ class NewVisitorTest(LiveServerTestCase):
         self.wait_for_item_in_list_table("1: Buy peacock feathers")
         self.wait_for_item_in_list_table("2: Use peacock feathers to make a fly")
 
-        self.fail("Test is not yet finished")
+    def test_multiple_users_have_unique_lists(self):
+        # Edith starts a new to-do list
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id("id_new_item")
+        edith_text = "Buy peacock feathers"
+        inputbox.send_keys(edith_text)
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_item_in_list_table(f"1: {edith_text}")
 
-        # Edith wonders whether the site will remember her list. Then she sees
-        # that the site has generated a unique URL for her -- there is some
-        # explanatory text to that effect.
+        # She notices that her list has a unique URL
+        edith_list_url = self.browser.current_url
+        self.assertRegex(edith_list_url, "/lists/.+")
 
-        # She visits that URL - her to-do list is still there.
+        # A new user, Francis, checks out the site as well
+        # # We restart the browser to ensure no info is kept from Edith's session
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
 
-        # Satisfied, she goes back to sleep
+        # Francis visits the home page, and should not see Edith's list.
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name("body").text
+
+        self.assertNotIn(edith_text, page_text)
+
+        # Francis starts a new list by entering a new item.
+        inputbox = self.browser.find_element_by_id("id_new_item")
+        inputbox.send_keys("Buy milk")
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_item_in_list_table("1: Buy milk")
+
+        # Francis gets his own unique URL
+        francis_list_url = self.browser.current_url
+        self.assertRegex(francis_list_url, "/lists/.+")
+        self.assertNotEqual(francis_list_url, edith_list_url)
+
+        # Again, there is no trace of Edith's list
+
+        # Finito
