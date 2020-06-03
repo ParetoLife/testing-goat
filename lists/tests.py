@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from lists.models import Item
+from lists.models import Item, List
 
 
 class HomePageTest(TestCase):
@@ -29,8 +29,9 @@ class ListViewTest(TestCase):
         self.assertTemplateUsed(response, "list.html")
 
     def test_display_all_list_items(self):
-        Item.objects.create(text="first text")
-        Item.objects.create(text="second text")
+        _list = List.objects.create()
+        Item.objects.create(text="first text", list=_list)
+        Item.objects.create(text="second text", list=_list)
 
         response = self.client.get("/lists/unique-identifier/")
 
@@ -38,13 +39,21 @@ class ListViewTest(TestCase):
         self.assertContains(response, "second text")
 
 
-class ItemModelTest(TestCase):
+class ListAndItemModelTest(TestCase):
     def test_saving_and_retrieving_items(self):
-        Item.objects.create(text="My first item")
-        Item.objects.create(text="The 2nd one")
+        _list = List()
+        _list.save()
+
+        Item.objects.create(text="My first item", list=_list)
+        Item.objects.create(text="The 2nd one", list=_list)
+
+        saved_list = List.objects.first()
+        self.assertEqual(saved_list, _list)
 
         saved_items = Item.objects.all()
         self.assertEqual(saved_items.count(), 2)
 
         self.assertEqual(saved_items[0].text, "My first item")
+        self.assertEqual(saved_items[0].list, _list)
         self.assertEqual(saved_items[1].text, "The 2nd one")
+        self.assertEqual(saved_items[1].list, _list)
