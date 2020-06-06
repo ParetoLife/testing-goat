@@ -20,23 +20,59 @@ class NewListTest(TestCase):
     def test_redirect_after_POST(self):
         response = self.client.post("/lists/new", data={"item_text": "A new list item"})
 
-        self.assertRedirects(response, "/lists/unique-identifier/")
+        created_list = List.objects.first()
+        self.assertRedirects(response, f"/lists/{created_list.id}/")
+
+
+class NewItemTest(TestCase):
+    def test_can_add_item_to_existing_list(self):
+        List.objects.create()  # Prepopulate the DB with a different list
+        new_list = List.objects.create()
+
+        self.client.post(
+            f"/lists/{new_list.id}/add_item", data={"item_text": "A new list item"},
+        )
+
+        item = Item.objects.get(list=new_list)
+        self.assertEqual(item.text, "A new list item")
+
+    def test_redirect_to_list_view(self):
+        List.objects.create()  # Prepopulate the DB with a different list
+        new_list = List.objects.create()
+
+        response = self.client.post(
+            f"/lists/{new_list.id}/add_item", data={"item_text": "A new list item"},
+        )
+
+        self.assertRedirects(response, f"/lists/{new_list.id}/")
+
+    def test_passes_correct_list_to_template(self):
+        List.objects.create()
+        correct_list = List.objects.create()
+        response = self.client.get(f"/lists/{correct_list.id}/")
+        self.assertEqual(response.context["list"], correct_list)
 
 
 class ListViewTest(TestCase):
     def test_uses_list_template(self):
-        response = self.client.get("/lists/unique-identifier/")
+        _list = List.objects.create()
+        response = self.client.get(f"/lists/{_list.id}/")
         self.assertTemplateUsed(response, "list.html")
 
-    def test_display_all_list_items(self):
+    def test_display_only_items_of_specific_list(self):
         _list = List.objects.create()
         Item.objects.create(text="first text", list=_list)
         Item.objects.create(text="second text", list=_list)
 
-        response = self.client.get("/lists/unique-identifier/")
+        other_list = List.objects.create()
+        Item.objects.create(text="other text", list=other_list)
+        Item.objects.create(text="other text2", list=other_list)
 
+        response = self.client.get(f"/lists/{_list.id}/")
         self.assertContains(response, "first text")
         self.assertContains(response, "second text")
+        self.assertNotContains(response, "other text")
+        self.assertNotContains(response, "other text2")
 
 
 class ListAndItemModelTest(TestCase):
