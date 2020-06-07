@@ -99,4 +99,24 @@ class NewVisitorTest(LiveServerTestCase):
 
         # Again, there is no trace of Edith's list
 
-        # Finito
+    def test_layout_and_styling(self):
+        # Edith goes to the home page, using a standard browser window size
+        self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024, 768)
+
+        # She sees that the input box is nicely centered
+        inputbox = self.browser.find_element_by_id("id_new_item")
+        self.assertAlmostEqual(
+            inputbox.location["x"] + inputbox.size["width"] / 2, 512, delta=10,
+        )
+
+        # After starting a new list, she sees that the inputbox is still nicely
+        # centered.
+        inputbox.send_keys("testing")
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_item_in_list_table("testing")
+
+        inputbox = self.browser.find_element_by_id("id_new_item")
+        self.assertAlmostEqual(
+            inputbox.location["x"] + inputbox.size["width"] / 2, 512, delta=10,
+        )
