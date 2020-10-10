@@ -11,7 +11,9 @@ MAX_WAIT = 10
 
 class NewVisitorTest(StaticLiveServerTestCase):
     def setUp(self):
-        self.browser = webdriver.Firefox()
+        self.options = webdriver.FirefoxOptions()
+        self.options.headless = True
+        self.browser = webdriver.Firefox(options=self.options)
         staging_server = os.environ.get("STAGING_SERVER")
         if staging_server:
             self.live_server_url = f"http://{staging_server}"
@@ -82,7 +84,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         # A new user, Francis, checks out the site as well
         # # We restart the browser to ensure no info is kept from Edith's session
         self.browser.quit()
-        self.browser = webdriver.Firefox()
+        self.browser = webdriver.Firefox(options=self.options)
 
         # Francis visits the home page, and should not see Edith's list.
         self.browser.get(self.live_server_url)
